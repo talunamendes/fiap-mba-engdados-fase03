@@ -11,12 +11,12 @@ Trabalho de final de fase para MBA de Engenharia de Dados da FIAP.
 
 ## Passo-a-passo
 
-- [00 - Setup & Configuração](/00-instalacao/README)
+- [00 - Setup & Configuração](/00-instalacao/README.md)
 
-- [01 - Start](/01-start/README)
+- [01 - Start](/01-start/README.md)
 
-- [02 - Ingestão manual](/02-ingestao-manual/README)
+- [02 - Ingestão manual](/02-ingestao-manual/README.md)
 
-- [03 - Ingestão por eventos](/03-ingestao-eventos/README)
+- [03 - Ingestão por eventos](/03-ingestao-eventos/README.md)
 
-- [04 - Transformação & Consumo](/04-transformacao-consumo/README)
+- [04 - Transformação & Consumo](/04-transformacao-consumo/README.md)

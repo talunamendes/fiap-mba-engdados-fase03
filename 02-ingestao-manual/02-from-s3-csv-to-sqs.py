@@ -1,10 +1,10 @@
-from util.S3Handler import S3Handler
+from util.S3Handler import S3ClientHandler
 from util.SQSHandler import SQSHandler
 
 
 def main():
 
-    s3 = S3Handler()
+    s3 = S3ClientHandler()
     sqs = SQSHandler()
 
     BUCKET = 's3-fiap-grupo-o'

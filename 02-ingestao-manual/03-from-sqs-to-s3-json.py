@@ -1,51 +1,24 @@
 import csv
 import json
 from io import StringIO
-import os
-import boto3
 import uuid
 
-s3 = boto3.resource('s3')
-s3Client = boto3.client('s3')
-sqs = boto3.client('sqs')
-
-bucket = 'bootcamp-data-engineering-12345'
-urlSQS = 'https://sqs.us-east-1.amazonaws.com/764597347320/small-files-csv'
-
-collumns = ["BibNum", "Title", "Author",
-            "ISBN", "PublicationYear", "Publisher", "Publisher",
-            "Subjects", "ItemType", "ItemCollection", "FloatingItem",
-            "ItemLocation", "ReportDate", "ItemCount"]
-
-
-def getMessageFromQueue(urlSQS):
-    response = sqs.receive_message(
-        QueueUrl=urlSQS,
-        MaxNumberOfMessages=1
-    )
-    print(json.dumps(response))
-    if "Messages" in response:
-        receiptHandle = response["Messages"][0]["ReceiptHandle"]
-        message = response["Messages"][0]["Body"]
-        return receiptHandle, message
-    else:
-        return None, None
-
-
-def deleteMessageFromQueue(urlSQS, receiptHandle):
-    response = sqs.delete_message(
-        QueueUrl=urlSQS,
-        ReceiptHandle=receiptHandle
-    )
-    print(json.dumps(response))
+from util.SQSHandler import SQSHandler
+from util.S3Handler import S3ObjectHandler
 
 
 def createJsonFromCSVInS3(bucket, key):
+    COLUMNS = ["BibNum", "Title", "Author",
+               "ISBN", "PublicationYear", "Publisher", "Publisher",
+               "Subjects", "ItemType", "ItemCollection", "FloatingItem",
+               "ItemLocation", "ReportDate", "ItemCount"]
+
+    csvObj = S3ObjectHandler(bucket, key)
+
     listRows = []
-    obj = s3.Object(bucket, key)
 
     # countLine = 1
-    for line in obj.get()['Body']._raw_stream:
+    for line in csvObj.getStreamingBody():
         s = StringIO(line.decode("utf-8"))
         linha = csv.reader(s, skipinitialspace=True)
 
@@ -53,9 +26,9 @@ def createJsonFromCSVInS3(bucket, key):
             data = {}
             # print("linha: "+str(countLine))
             data["id"] = str(uuid.uuid4())
-            for i in range(len(collumns) - 1):
+            for i in range(len(COLUMNS) - 1):
                 # print("coluna: " + str(i))
-                data[collumns[i]] = row[i]
+                data[COLUMNS[i]] = row[i]
 
             listRows.append(data)
             # countLine += 1
@@ -76,18 +49,26 @@ def createJsonFromCSVInS3(bucket, key):
     filename = key.split("/")[1] + ".json"
     print(filename)
 
-    object = s3.Object(bucket, "json/" + filename)
-    object.put(Body=fileContent.encode())
+    jsonObj = S3ObjectHandler(bucket, "json/" + filename)
+    jsonObj.put(fileContent.encode())
 
 
-while True:
-    receiptHandle, messageStr = getMessageFromQueue(urlSQS)
-    if receiptHandle is None:
-        print("nada")
-        break
-    else:
-        print(messageStr)
-        message = json.loads(messageStr)
-        createJsonFromCSVInS3(message["bucket"], message["key"])
-        deleteMessageFromQueue(urlSQS, receiptHandle)
-# createJsonFromCSVInS3("teste-dms-rafbarbo", "files-small/inventory.part.00")
+def main():
+    URL_SQS = 'https://sqs.us-east-1.amazonaws.com/890480273214/small_files_csv'
+
+    sqs = SQSHandler()
+
+    while True:
+        receiptHandle, messageStr = sqs.getMessageFromQueue(URL_SQS)
+        if receiptHandle is None:
+            print("nada")
+            break
+        else:
+            print(messageStr)
+            message = json.loads(messageStr)
+            createJsonFromCSVInS3(message["bucket"], message["key"])
+            sqs.deleteMessageFromQueue(URL_SQS, receiptHandle)
+
+
+if __name__ == '__main__':
+    main()

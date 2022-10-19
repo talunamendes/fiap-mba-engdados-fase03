@@ -1,3 +1,5 @@
+import json
+
 from util.KinesisHandler import KinesisHandler
 from util.S3Handler import S3ObjectHandler
 from util.SQSHandler import SQSHandler
@@ -25,17 +27,18 @@ def readObjectAndSendToFirehose(bucket, bucket_key, kinesis_name):
 def main():
     sqs = SQSHandler()
     URL_SQS = 'https://sqs.us-east-1.amazonaws.com/890480273214/raw_json'
-    kinesis_name = 'ingest-json'
+    kinesis_name = 'firehose-grupo-o-ingest-json'
 
     while True:
         receiptHandle, message = sqs.getMessageFromQueue(URL_SQS)
+        json_message = json.loads(message)
         if receiptHandle is None:
             print("acabou a fila")
             break
         else:
             print("received message: " + str(message))
-            bucket = message["bucket"]
-            key = message["key"]
+            bucket = json_message["bucket"]
+            key = json_message["key"]
             readObjectAndSendToFirehose(bucket, key, kinesis_name)
             sqs.deleteMessageFromQueue(URL_SQS, receiptHandle)
 

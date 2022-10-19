@@ -1,0 +1,1 @@
+Script gerado automaticamente pelo job criado no Glue com o objetivo de fazer a conversão dos arquivos JSON para Parquet considerando um bucket S3 com JSON como datasource de origem e um bucket S3 como destino do conteudo parquet.

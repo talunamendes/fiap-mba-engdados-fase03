@@ -1,0 +1,33 @@
+service: to-firehose-from-sqs
+provider:
+  name: aws
+  runtime: python3.8
+  region: us-east-1
+
+
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "firehose:*"
+      Resource: 
+        - "arn:aws:firehose:us-east-1:*:deliverystream/*"
+    - Effect: "Allow"
+      Action:
+        - "s3:*"
+      Resource: 
+        - "arn:aws:s3:::*"
+
+
+functions:
+  put:
+    handler: handler.handler
+    memorySize: 1024
+    timeout: 120
+    reservedConcurrency: 5
+    provisionedConcurrency: 3
+    environment:
+      deliveryStream: "fh-grupo-o-ingest-json"
+    events:
+      - sqs:
+          arn: arn:aws:sqs:us-east-1:890480273214:raw-json
+          batchSize: 1

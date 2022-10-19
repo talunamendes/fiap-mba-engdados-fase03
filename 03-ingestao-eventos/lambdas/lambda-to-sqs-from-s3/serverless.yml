@@ -1,0 +1,38 @@
+service: to-sqs-from-s3
+provider:
+  name: aws
+  runtime: python3.8
+  region: us-east-1
+
+
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "sqs:*"
+      Resource: 
+        - "arn:aws:sqs:us-east-1:*:*"
+
+
+functions:  
+  small-files-csv:
+    handler: handler.handler
+    environment:
+      urlSQS: "https://sqs.us-east-1.amazonaws.com/890480273214/small-files-csv"
+    events:
+      - s3:
+         bucket: s3-fiap-grupo-o
+         event: s3:ObjectCreated:*
+         rules:
+            - prefix: files-small/
+         existing: true
+  raw-json:
+    handler: handler.handler
+    environment:
+      urlSQS: "https://sqs.us-east-1.amazonaws.com/890480273214/raw-json"
+    events:
+      - s3:
+         bucket: s3-fiap-grupo-o
+         event: s3:ObjectCreated:*
+         rules:
+            - prefix: json/
+         existing: true

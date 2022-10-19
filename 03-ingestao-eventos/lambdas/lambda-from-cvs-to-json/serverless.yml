@@ -1,0 +1,24 @@
+service: from-sqs-to-json
+provider:
+  name: aws
+  runtime: python3.8
+  region: us-east-1
+
+
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "s3:*"
+      Resource: 
+        - "arn:aws:s3:::*"
+
+
+functions:
+  func:
+    handler: handler.handler
+    memorySize: 1024
+    timeout: 120
+    events:
+      - sqs:
+          arn: arn:aws:sqs:us-east-1:890480273214:small-files-csv
+          batchSize: 1

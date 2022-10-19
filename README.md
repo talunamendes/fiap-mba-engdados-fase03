@@ -19,4 +19,6 @@ Trabalho de final de fase para MBA de Engenharia de Dados da FIAP.
 
 - [03 - Ingestão por eventos](/03-ingestao-eventos/README.md)
 
-- [04 - Transformação & Consumo](/04-transformacao-consumo/README.md)
+- [04 - Transformação](/04-transformacao/README.md)
+
+- [05 - Consumo](/05-consumo/README.md)

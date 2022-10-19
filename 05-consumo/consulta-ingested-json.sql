@@ -1,0 +1,1 @@
+SELECT * FROM "fiap-grupo-o"."ingested_json" where id = '00001866-8499-4351-b979-2b4608a1f931'

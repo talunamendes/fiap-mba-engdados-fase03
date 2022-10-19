@@ -1,41 +1,14 @@
-from kinesisHandler import KinesisHandler
-import json
-import boto3
+from util.KinesisHandler import KinesisHandler
+from util.S3Handler import S3ObjectHandler
+from util.SQSHandler import SQSHandler
 
 
-
-kinesis = KinesisHandler('ingest-json')
-s3 = boto3.resource('s3')
-sqs = boto3.client('sqs')
-urlSQS = 'https://sqs.us-east-1.amazonaws.com/764597347320/raw-json'
-
-
-def getMessageFromQueue(urlSQS):
-    response = sqs.receive_message(
-        QueueUrl=urlSQS,
-        MaxNumberOfMessages=1
-    )
-    if "Messages" in response:
-        receiptHandle = response["Messages"][0]["ReceiptHandle"]
-        message = response["Messages"][0]["Body"]
-        return receiptHandle, json.loads(message)
-    else:
-        return None, None
-
-
-def deleteMessageFromQueue(urlSQS, receiptHandle):
-    response = sqs.delete_message(
-        QueueUrl=urlSQS,
-        ReceiptHandle=receiptHandle
-    )
-    print("message deleted: " + json.dumps(response))
-
-
-def readObjectAndSendToFirehose(bucket, key):
-    obj = s3.Object(bucket, key)
+def readObjectAndSendToFirehose(bucket, bucket_key, kinesis_name):
+    kinesis = KinesisHandler(kinesis_name)
+    jsonObj = S3ObjectHandler(bucket, bucket_key)
     cont = 0
     listLines = []
-    for line in obj.get()['Body']._raw_stream:
+    for line in jsonObj.getStreamingBody():
         # s = StringIO(line.decode("utf-8"))
         listLines.append(line.decode("utf-8"))
         if cont == 149:
@@ -48,20 +21,26 @@ def readObjectAndSendToFirehose(bucket, key):
         kinesis.put_record(listLines)
         print("enviou fora for")
 
-while True:
-    receiptHandle, message = getMessageFromQueue(urlSQS)
-    if receiptHandle == None:
-        print("acabou a fila")
-        break
-    else:
-        print("received message: " + str(message))
-        bucket = message["bucket"]
-        key = message["key"]
-        readObjectAndSendToFirehose(bucket, key)
-        deleteMessageFromQueue(urlSQS,receiptHandle)
 
-print("terminou com sucesso")
+def main():
+    sqs = SQSHandler()
+    URL_SQS = 'https://sqs.us-east-1.amazonaws.com/890480273214/raw_json'
+    kinesis_name = 'ingest-json'
+
+    while True:
+        receiptHandle, message = sqs.getMessageFromQueue(URL_SQS)
+        if receiptHandle is None:
+            print("acabou a fila")
+            break
+        else:
+            print("received message: " + str(message))
+            bucket = message["bucket"]
+            key = message["key"]
+            readObjectAndSendToFirehose(bucket, key, kinesis_name)
+            sqs.deleteMessageFromQueue(URL_SQS, receiptHandle)
+
+    print("terminou com sucesso")
 
 
-        
-
+if __name__ == '__main__':
+    main()

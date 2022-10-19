@@ -1,15 +1,17 @@
-from util.S3Handler import S3Handler
+from util.S3Handler import S3ClientHandler
 from util.SQSHandler import SQSHandler
 
 
-def main():
+# TODO melhorar o codigo para reaproveitar o que foi feito no 02-from-s3-csv-to-sqs
+# TODO deixamos dessa forma por efeito de celeridade da entrega do trabalho
 
-    s3 = S3Handler()
+def main():
+    s3 = S3ClientHandler()
     sqs = SQSHandler()
 
     BUCKET = 's3-fiap-grupo-o'
-    BUCKET_KEY = 'small-files/'
-    SQS_URL = 'https://sqs.us-east-1.amazonaws.com/890480273214/small_files_csv'
+    BUCKET_KEY = 'json/'
+    SQS_URL = 'https://sqs.us-east-1.amazonaws.com/890480273214/raw_json'
 
     listObjectKeys = s3.getListOfKeyObjects(BUCKET, BUCKET_KEY)
 

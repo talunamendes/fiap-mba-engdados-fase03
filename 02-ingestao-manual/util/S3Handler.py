@@ -27,6 +27,9 @@ class S3ObjectHandler:
         self.s3 = boto3.resource('s3')
         self.s3Object = self.s3.Object(bucket, key)
 
+    # TODO substituir o _raw_stream, cheguei a usar o read(), mas deu erro.
+    # TODO deixamos dessa forma por efeito de celeridade da entrega do trabalho
+
     def getStreamingBody(self):
         return self.s3Object.get()['Body']._raw_stream
 
